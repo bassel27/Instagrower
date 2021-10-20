@@ -1,13 +1,13 @@
 from tkinter import *
 from tkinter import ttk
-from Igbot import *
 from tkinter import messagebox
 import os 
 import glob
-from tkinter import filedialog  #allows you to open and save files or folders
+from instabot import Bot
+from checklistcombobox import *
+from instadm import InstaDM
 
-
-igbot = Igbot()
+bot = Bot()
 
 class Tkinter:
     def __init__(self, root):
@@ -19,75 +19,77 @@ class Tkinter:
             os.remove(cookie_del[0])
         except:
             pass
-
-    def frameWelcome(self):
-        self.frameWelcome = LabelFrame(self.root)
-        self.frameWelcome.grid(row = 1, column = 0)
-        Label(self.root, text = "Instagrower").grid(row = 0, column = 0)
-    
-    def whichAccount(self):        
-        self.valueInside = StringVar(self.frameWelcome)  #Variable to keep track of the option selected in OptionMenu
-        self.valueInside.set("fake_account")     # default value
-        Label(self.frameWelcome, text = "Which account?").grid(row = 0, column =0)
-        accDropDown = ttk.OptionMenu(self.frameWelcome, self.valueInside, "longlivebassel")
-        accDropDown.grid(row = 0, column = 1)
-    
-    def nextButton(self):
-        def clickNext():
-            igbot.login(self.valueInside.get())
-            del self.valueInside
-            self.frameWelcome.destroy()
-            del self.frameWelcome
-            self.displayFrameChoose()
-        nextButton = ttk.Button(self.frameWelcome, text = "Next", command = clickNext)
-        nextButton.grid(row = 1, column = 1)
-
-    def browseImg (self):
-        self.fileAddress = filedialog.askopenfilename(initialdir = 'Downloads', title = "Select a photo", filetypes = (("image", ".jpeg"), ("image", ".jpg")))       # to open a file explorer, use the method askopenfilename()
-
-    def afterUpload(self):
-        os.rename(self.fileAddress, self.fileAddress[:-10])
-        del self.fileAddress
-    
-    
-
-    def displayFrameUploadPhoto(self):
-        self.frameChoose.destroy()
-        frameUploadPhoto = LabelFrame(self.root)
-        frameUploadPhoto.grid(row = 1, column =0)
-        textCaption = Text(frameUploadPhoto, borderwidth = 3, height = 13, width = 35)
-        textCaption.grid(row =0, column = 0)
-        buttonBrowse = ttk.Button(frameUploadPhoto, text = "Browse", command = self.browseImg).grid(row = 1, column = 0)
-        buttonUpload= ttk.Button(frameUploadPhoto, text = 'Upload', command = lambda : [igbot.uploadPhoto(self.fileAddress, textCaption.get("1.0",'end-1c')), self.afterUpload()]).grid(row = 2, column = 0)
-        buttonRetrun = ttk.Button(frameUploadPhoto, text = "Return to main menu", command = [frameUploadPhoto.destroy(), self.displayFrameChoose()])
-        def Focusin(event):  
-            if textCaption.get("1.0",'end-1c') == 'Enter your caption...':
-                textCaption.delete(0, "end") # delete all the text in the entry
-                textCaption.insert(0, '') #Insert blank for user input
-                textCaption.config(fg = 'black')
-        def Focusout(event):
-            if textCaption.get("1.0",'end-1c') == '':
-                textCaption.insert(0, 'Enter your caption...')
-                textCaption.config(fg = 'grey')
-                
-        textCaption.bind('<FocusIn>', Focusin)
-        textCaption.bind('<FocusOut>', Focusout)
         
-        
-    
-    def frameSendMsg(self):
-        self.frameChoose.destroy()
-        frameSendMsg = LabelFrame(self.root).grid(row = 0, column =0)
-
-
     def displayFrameChoose(self):
         self.frameChoose = LabelFrame(self.root)
         self.frameChoose.grid(row = 0, column = 0)
         Label(self.frameChoose, text = "Main Menu").grid(row = 0, column = 1)
-        buttonUploadPhoto = ttk.Button(self.frameChoose, text= 'Upload a photo', command = self.displayFrameUploadPhoto).grid(row = 1, column =0)
         Label(self.frameChoose, text = " ").grid(row = 0, column = 1)
-        buttonSendMsg = ttk.Button(self.frameChoose, text = 'Send a message', command = self.frameSendMsg).grid(row = 1, column = 2)
+        buttonSendMsg = ttk.Button(self.frameChoose, text = 'Send a message', command = self.frameSendMsg).grid(row = 1, column = 0)
         
+    
+    def frameSendMsg(self):
+        def textMsgStuff(frameSendMsg):
+            global textMsg
+            textMsg = Text(frameSendMsg, borderwidth = 3, height = 10, width = 35)
+            textMsg.pack()
+            textMsg.insert(1.0, 'Enter your message...')
+            textMsg.config(fg = 'grey')
+
+            def Focusin(event):  
+                if textMsg.get("1.0",'end-1c') == 'Enter your message...':
+                    textMsg.delete(1.0, "end") # delete all the text in the entry
+                    textMsg.insert(1.0, '') #Insert blank for user input
+                    textMsg.config(fg = 'black')
+            def Focusout(event):
+                if textMsg.get("1.0",'end-1c') == '':
+                    textMsg.insert(1.0, 'Enter your message...')
+                    textMsg.config(fg = 'grey')
+                    
+            textMsg.bind('<FocusIn>', Focusin)
+            textMsg.bind('<FocusOut>', Focusout)
+
+        self.frameChoose.destroy()
+        frameSendMsg = Frame(self.root)
+        frameSendMsg.grid(row = 0, column =0)
+        textMsgStuff(frameSendMsg)
+        
+        cbValues = ('Alexandria','Sea','Flower', "Nature", "Egypt")      
+        cb = ChecklistCombobox(frameSendMsg, values = cbValues, state='readonly', checkbutton_height=1, width=45, height=6)
+        cb.pack()
+        
+
+        def sendMsg():
+            recipients =[]
+            chosen = cb.get()
+            for choice in chosen:
+                if choice == "Alexandria":
+                    alexandria = ["alexandrinagram", "alessandria_egitto_", 'alexgram.eg', "alexandriatoday", "eskandrany18", "map_of_alexandria", "alexandriahabebti", "wualexandrian", "alexandriainmagazine"] #alexgram.eg, alexandrinagram
+                    recipients.extend(alexandria)
+
+                elif choice == "Sea":
+                    sea = ['retro_codger']
+                    recipients.extend(sea)
+
+                elif choice == "Flower":
+                    pass
+                
+                elif choice == "Nature":
+                    nature = ["ourplanetdaily"]
+                    recipients.extend(nature) # worldplaces, theglobewanderer, discoverearth, passionpassport, awesome_earthpix
+
+                elif choice == "Egypt":
+                    pass
+                    egypt = ["mobile_photographers_egypt", "mobilephotographyeg", "egypt__pic", "thepicsecho", "unlimitedegypt", "egypt.discovery", "yalla.egypt", "yalla.egypt", "egypt.discovery"] #egypt.discovery, yalla.egypt
+                    recipients.extend(egypt)
+
+            insta = InstaDM(username='asser_seif_1999', password='3nd13$$10v3', headless=False)
+            
+            global textMsg    
+            for recipient in recipients:
+                insta.sendMessage(user=recipient, message=textMsg.get("1.0",'end-1c'))
+        ttk.Button(frameSendMsg, text = 'Send', command = sendMsg).pack()
+            
     def ifExit(self):
         def doSomethingOnExit():
             response = messagebox.askyesno("Exit program", "Are you sure you want to exit?")
